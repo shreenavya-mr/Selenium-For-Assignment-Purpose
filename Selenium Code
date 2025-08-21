@@ -1,0 +1,63 @@
+import os
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
+# Folder to save screenshots
+SAVE_FOLDER = "altoro_screenshots"
+os.makedirs(SAVE_FOLDER, exist_ok=True)
+
+# Start browser
+driver = webdriver.Chrome()
+driver.get("https://demo.testfire.net/")
+
+# 1. Click "Sign In"
+WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.LINK_TEXT, "Sign In"))
+).click()
+
+# 2. Wait for login form and enter credentials
+WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "uid")))
+driver.find_element(By.ID, "uid").send_keys("admin")
+driver.find_element(By.ID, "passw").send_keys("admin")
+driver.find_element(By.NAME, "btnSubmit").click()
+
+# 3. Define pages to visit
+pages = {
+    "account_summary.jpg": "View Account Summary",
+    "recent_transactions.jpg": "View Recent Transactions",
+    "transfer_funds.jpg": "Transfer Funds",
+    "search_news.jpg": "Search News Articles",
+    "customize_language.jpg": "Customize Site Language",
+    "online_statements.jpg": "Online Statements",
+    "bill_pay.jpg": "Bill Pay",
+    "open_account.jpg": "Open New Account",
+    "profile.jpg": "My Profile",
+    "change_password.jpg": "Change Password",
+    "about_us.jpg": "About Us",
+    "contact_us.jpg": "Contact Us",
+    "privacy_policy.jpg": "Privacy Policy",
+    "terms_of_use.jpg": "Terms of Use"
+}
+
+# 4. Visit and save each page as screenshot
+for filename, link_text in pages.items():
+    try:
+        WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.LINK_TEXT, link_text))
+        ).click()
+
+        screenshot_path = os.path.join(SAVE_FOLDER, filename)
+        driver.save_screenshot(screenshot_path)
+        print(f"✅ Screenshot saved: {screenshot_path}")
+
+        # Navigate back to main page (only if still logged in)
+        driver.get("https://demo.testfire.net/bank/main.jsp")
+
+    except TimeoutException:
+        print(f"⚠️ Skipped: {link_text} (not found)")
+
+print("🎯 All available pages processed")
+driver.quit()
